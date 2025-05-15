@@ -228,14 +228,14 @@ test('logLevel options', async t => {
     const cookie = response.cookies[0]
 
     // missing csrf secret
-    await fastify.inject({
+    const missingRes = await fastify.inject({
       method: 'POST',
       payload: { hello: 'world' },
       path: '/',
     })
 
     // invalid csrf token
-    await fastify.inject({
+    const invalidRes = await fastify.inject({
       method: 'POST',
       payload: { hello: 'world' },
       path: '/',
@@ -243,6 +243,7 @@ test('logLevel options', async t => {
         [cookie.name]: cookie.value
       }
     })
+    return [missingRes, invalidRes]
   }
 
   t.afterEach(() => {
@@ -268,11 +269,13 @@ test('logLevel options', async t => {
   })
 
   await t.test('silent log level', async t => {
-    t.plan(1)
+    t.plan(3)
     const fastify = await load('silent')
-    await makeRequests(fastify)
+    const [res1, res2] = await makeRequests(fastify)
 
     t.assert.ok(spyLogger.warn.notCalled)
+    t.assert.equal(res1.statusCode, 403)
+    t.assert.equal(res2.statusCode, 403)
   })
 })
 

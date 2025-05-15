@@ -116,11 +116,11 @@ async function fastifyCsrfProtection (fastify, opts) {
   function csrfProtection (req, reply, next) {
     const secret = getSecret(req, reply)
     if (!secret) {
-      req.log[logLevel]('Missing csrf secret')
+      if (logLevel !== 'silent') req.log[logLevel]('Missing csrf secret')
       return reply.send(new MissingCSRFSecretError())
     }
     if (!tokens.verify(secret, getToken(req), getUserInfo(req))) {
-      req.log[logLevel]('Invalid csrf token')
+      if (logLevel !== 'silent') req.log[logLevel]('Invalid csrf token')
       return reply.send(new InvalidCSRFTokenError())
     }
     next()
